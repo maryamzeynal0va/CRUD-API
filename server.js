@@ -1,22 +1,23 @@
 const express = require("express");
 const app = express();
+app.use(express.json());
 const PORT = 3000;
 
 const tasks = [
     {
         id: 0,
         title: "Learn JavaScript",
-        completed: false
+        done: false
     },
     {
         id: 1,
         title: "Finish Assignment",
-        completed: true
+        done: true
     },
     {
         id: 2,
         title: "Check Emails",
-        completed: false
+        done: false
     }
 ];
 
@@ -53,6 +54,23 @@ app.get("/tasks/:id", (req, res) => {
     res.json(task);
 });
 
+app.post("/tasks", (req, res) => {
+    const { title, done } = req.body;
+    if (!title || title.trim() === "") {
+    return res.status(400).json({
+        error: "Title is required"
+    });
+}
+
+    const id = tasks.length;
+    const newTask = {
+    id,
+    title,
+    done: false
+};
+    tasks.push(newTask);
+    res.status(201).json(newTask);
+});
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
