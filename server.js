@@ -1,27 +1,13 @@
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./openapi.json");
+const PostgresRepository = require("./repositories/postgresRepository");
+
 const app = express();
 app.use(express.json());
-const PORT = 3000;
 
-const tasks = [
-    {
-        id: 0,
-        title: "Learn JavaScript",
-        done: false
-    },
-    {
-        id: 1,
-        title: "Finish Assignment",
-        done: true
-    },
-    {
-        id: 2,
-        title: "Check Emails",
-        done: false
-    }
-];
+const PORT = 3000;
+const repository = new PostgresRepository();
 
 // Root endpoint
 app.get("/", (req, res) => {
@@ -38,46 +24,17 @@ app.get("/health", (req, res) => {
     });
 });
 
-app.get("/tasks", (req, res) => {
+// Get all tasks
+app.get("/tasks", async (req, res) => {
+    const tasks = await repository.getAll();
     res.json(tasks);
 });
 
-app.get("/tasks/:id", (req, res) => {
+// Get one task
+app.get("/tasks/:id", async (req, res) => {
     const id = parseInt(req.params.id);
 
-    const task = tasks.find(task => task.id === id);
-
-    if (!task) {
-        return res.status(404).json({
-            "error": `Task ${id} not found`
-        });
-    }
-
-    res.json(task);
-});
-
-app.post("/tasks", (req, res) => {
-    const { title, done } = req.body;
-    if (!title || title.trim() === "") {
-    return res.status(400).json({
-        error: "Title is required"
-    });
-}
-
-    const id = tasks.length;
-    const newTask = {
-    id,
-    title,
-    done: false
-};
-    tasks.push(newTask);
-    res.status(201).json(newTask);
-});
-
-app.put("/tasks/:id", (req, res) => {
-    const id = parseInt(req.params.id);
-
-    const task = tasks.find(task => task.id === id);
+    const task = await repository.getById(id);
 
     if (!task) {
         return res.status(404).json({
@@ -85,6 +42,27 @@ app.put("/tasks/:id", (req, res) => {
         });
     }
 
+    res.json(task);
+});
+
+// Create task
+app.post("/tasks", async (req, res) => {
+    const { title } = req.body;
+
+    if (!title || title.trim() === "") {
+        return res.status(400).json({
+            error: "Title is required"
+        });
+    }
+
+    const newTask = await repository.create(title);
+
+    res.status(201).json(newTask);
+});
+
+// Update task
+app.put("/tasks/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
     const { title, done } = req.body;
 
     if (title === undefined && done === undefined) {
@@ -93,34 +71,34 @@ app.put("/tasks/:id", (req, res) => {
         });
     }
 
-    if (title !== undefined) {
-        task.title = title;
-    }
+    const updatedTask = await repository.update(id, { title, done });
 
-    if (done !== undefined) {
-        task.done = done;
-    }
-
-    res.json(task);
-});
-
-app.delete("/tasks/:id", (req, res) => {
-    const id = parseInt(req.params.id);
-
-    const index = tasks.findIndex(task => task.id === id);
-
-    if (index === -1) {
+    if (!updatedTask) {
         return res.status(404).json({
             error: `Task ${id} not found`
         });
     }
 
-    tasks.splice(index, 1);
+    res.json(updatedTask);
+});
+
+// Delete task
+app.delete("/tasks/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+
+    const deleted = await repository.delete(id);
+
+    if (!deleted) {
+        return res.status(404).json({
+            error: `Task ${id} not found`
+        });
+    }
 
     res.sendStatus(204);
 });
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
