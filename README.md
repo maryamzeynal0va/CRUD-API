@@ -1,24 +1,48 @@
 # Task API
 
-A simple CRUD API built with Node.js and Express. This project demonstrates the basic CRUD operations on an in-memory list of tasks.
+A CRUD API built with Node.js, Express, PostgreSQL, and Docker. The application stores tasks in a PostgreSQL database instead of an in-memory array. The API and database can be started together using Docker Compose.
 
 ## Features
-- GET /tasks , GET /tasks/:id , POST /tasks , PUT /tasks/:id , DELETE /tasks/:id all work — full CRUD on an in-memory list (no database, no files).
-- Swagger UI at /docs lists every endpoint, and the full CRUD cycle works via "Try it out".
-- Correct status codes: 200 reads, 201 create, 204 delete, 400 invalid body, 404 unknown id — each error with a JSON error message.
+
+- Full CRUD API for managing tasks
+- PostgreSQL database for persistent storage
+- Docker Compose starts both the API and PostgreSQL
+- Swagger UI documentation at `/docs`
+- Environment variables stored in `.env` (`.env.example` included)
+- Data persists across application and database restarts using a Docker volume
+
+## Technologies
+
+- Node.js
+- Express
+- PostgreSQL
+- Docker
+- Docker Compose
+- Swagger UI
 
 ## Installation
-Install the required packages:
+
+Clone the repository and install dependencies:
 
 ```bash
 npm install
 ```
 
-## Run the API
-Start the server:
+Create a `.env` file based on `.env.example`.
+
+Example:
+
+```env
+DATABASE_URL=postgres://postgres:password@db:5432/tasksdb
+PORT=3000
+```
+
+## Run the Project
+
+Start the entire stack:
 
 ```bash
-node server.js
+docker compose up --build
 ```
 
 The API will be available at:
@@ -45,31 +69,32 @@ http://localhost:3000/docs
 | PUT | /tasks/:id | Updates an existing task |
 | DELETE | /tasks/:id | Deletes a task |
 
-## Example curl Request
+## Architecture
+
+The project uses a repository pattern.
+
+Originally the application stored data in an in-memory repository. It has been updated to use a PostgreSQL repository while keeping the API endpoints unchanged.
+
+## Persistence Verification
+
+Persistence was verified by:
+
+1. Creating a task.
+2. Stopping the containers with:
 
 ```bash
-curl.exe -i http://localhost:3000/tasks
+docker compose down
 ```
 
-Example output:
+3. Starting them again:
 
-```http
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-[
-  {
-    "id": 0,
-    "title": "Learn JavaScript",
-    "done": false
-  },
-  {
-    "id": 1,
-    "title": "Finish Assignment",
-    "done": true
-  }
-]
+```bash
+docker compose up
 ```
+
+4. Confirming that the previously created task was still present.
+
+This demonstrates that the PostgreSQL Docker volume preserves data across restarts.
 
 ## Swagger UI
 
