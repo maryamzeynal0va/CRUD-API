@@ -3,12 +3,9 @@
 A simple CRUD API built with Node.js and Express. This project demonstrates the basic CRUD operations on an in-memory list of tasks.
 
 ## Features
-- Create tasks
-- Read all tasks
-- Read a single task by ID
-- Update tasks
-- Delete tasks
-- Swagger UI documentation
+- GET /tasks , GET /tasks/:id , POST /tasks , PUT /tasks/:id , DELETE /tasks/:id all work — full CRUD on an in-memory list (no database, no files).
+- Swagger UI at /docs lists every endpoint, and the full CRUD cycle works via "Try it out".
+- Correct status codes: 200 reads, 201 create, 204 delete, 400 invalid body, 404 unknown id — each error with a JSON error message.
 
 ## Installation
 Install the required packages:
